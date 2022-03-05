@@ -11,9 +11,9 @@ class BusinessRequirementDeliverable(models.Model):
     _description = "Business Requirement Deliverable"
     _order = "business_requirement_id, section_id, sequence, id"
 
-    sequence = fields.Integer(string="Sequence")
+    sequence = fields.Integer()
     state = fields.Selection(related="business_requirement_id.state", store=True)
-    name = fields.Text(string="Name", required=True)
+    name = fields.Text(required=True)
     user_case = fields.Html()
     proposed_solution = fields.Html()
     product_id = fields.Many2one(
@@ -62,9 +62,7 @@ class BusinessRequirementDeliverable(models.Model):
         readonly=False,
         store=True,
     )
-    state = fields.Selection(
-        related="business_requirement_id.state", string="State", store=True
-    )
+    state = fields.Selection(related="business_requirement_id.state", store=True)
     portal_published = fields.Boolean(string="In Portal", default=True)
     section_id = fields.Many2one(
         comodel_name="business.requirement.deliverable.section", string="Section"
@@ -74,6 +72,7 @@ class BusinessRequirementDeliverable(models.Model):
         super()._compute_access_url()
         for brd in self:
             brd.access_url = "/my/brd/%s" % brd.id
+        return
 
     @api.depends(
         "business_requirement_id.partner_id", "business_requirement_id.currency_id"
@@ -153,7 +152,6 @@ class BusinessRequirement(models.Model):
     deliverable_lines = fields.One2many(
         comodel_name="business.requirement.deliverable",
         inverse_name="business_requirement_id",
-        string="Deliverable Lines",
         copy=True,
         readonly=True,
         states={"draft": [("readonly", False)], "confirmed": [("readonly", False)]},
@@ -299,7 +297,7 @@ class BusinessRequirement(models.Model):
         return sections_total
 
     def map_deliverable(self, new_br_id):
-        """ copy and map deliverable from old to new requirement """
+        """copy and map deliverable from old to new requirement"""
         deliverables = self.env["business.requirement.deliverable"]
         deliverable_ids = (
             self.env["business.requirement.deliverable"]
